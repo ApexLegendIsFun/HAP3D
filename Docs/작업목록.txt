@@ -3,7 +3,7 @@ HAP 3D - 작업목록 v0.5 (2026.10.13, 최종 구현 확인 반영)
 학교 제출 PDF: 기획서 v0.4 (보관본). 원문 v0.5와 다른 버전.
 
 [세 퍼즐 구현·검증 — 완료]
-■ 세 구간 시작 위치에서 실제 입력으로 이동·캐릭터 전환·중력 반전·완료까지 검증; 경로 이동으로 강제 배치하지 않음
+■ 세 구간 시작 위치에서 검증용 이동 입력(API)으로 이동·캐릭터 전환·중력 반전·완료까지 검증; 경로 이동으로 강제 배치하지 않음. 실제 키 입력은 아래 macOS 확인과 구분.
 ■ Unity 컴파일 및 그래픽 포함 13단계 검증 통과, exit 0
   로그: /tmp/hap3d-voxel-validation-release.log (HAP3D_VALIDATION_OK)
   경고 중 합류하면 붕괴 취소 후 Stable, 붕괴 유지·복구, 캐릭터 한 명만 목표 도착 시 미완료 확인
@@ -17,16 +17,20 @@ HAP 3D - 작업목록 v0.5 (2026.10.13, 최종 구현 확인 반영)
 □ Windows 환경에서 실행 확인
 □ 처음 하는 사람 대상 플레이 테스트; 3~5분 목표 분량도 미확인
 ■ 공개 저장소 생성: https://github.com/ApexLegendIsFun/HAP3D
-□ 소스 push, GitHub Release, 학교 Notion 등록은 준비 중이며 미완료
+■ 소스 커밋 4f56a3b 원격 main push 완료
+■ GitHub 공개 프리릴리스: https://github.com/ApexLegendIsFun/HAP3D/releases/tag/v0.1.0
+  macOS ZIP 44,430,878 bytes, SHA-256 582e9bb2d918a43288425605ad97c14d835b1ad94d53f532b6a26ca66bbd59f6
+  Windows ZIP 36,017,544 bytes, SHA-256 f4aa3c36e7facdc885be79793ae652710c97c777bd8cc5b970ffba08ecadab10
+  원격 업로드 digest와 로컬 파일 일치 확인. 체크섬 파일도 릴리스에 포함.
+■ 학교 Notion Git Repository 항목에 URL 입력 및 페이지 재로드 후 반영 확인
   공식 등록 안내: https://app.notion.com/p/3e4caf5650aa80309c09fd9cf7c1705a
-  2026.10.13 현재 Git Repository 필드 Empty였음. 등록 뒤 증거 확인 후 갱신.
 
 [현재 기획 기준]
 ■ PC 1인 조작, WASD 이동/Tab 전환 승인
 ■ 세 퍼즐: 함께 건너기 / 다른 바닥 / 뒤집혀도 함께
 ■ 비주얼: 작은 복셀 블록섬, 흑백 캐릭터, 청록 빛길, 고정 사선 직교 시점
 ■ 빛블록: 양 단독 길 / 음 단독 접근 시 붕괴 / 함께면 안정
-■ Noto Sans KR static Regular weight 400, SIL OFL 1.1 notice와 Google Fonts 원본 출처 포함
+■ Noto Sans KR static Regular weight 400 (변수폰트 기본 100 대신 실행 시 400 고정), SIL OFL 1.1 notice와 Google Fonts 원본 출처 포함
 ■ 스크린샷: Docs/Screenshots/stage-1.png, stage-2.png, stage-3.png, bridge-warning.png, gameplay-mac.png
 ■ 초기 프로토타입 8단계 검증/Mac 실행과 학교 기획서 PDF v0.4 제출 기록은 아래 2026.10.02 보존 이력 참조
   v0.4는 학교 제출본. 기획 원문 v0.5 (2026.10.13)는 별도 최신 문서.

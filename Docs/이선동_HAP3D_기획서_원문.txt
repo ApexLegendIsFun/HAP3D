@@ -72,7 +72,7 @@ PC 한 대에서 한 명이 양과 음을 번갈아 조작한다. WASD로 선택
 복셀 형태의 세 퍼즐 구현을 완료했다. 초행 사용자 테스트는 아직 하지 않았고, 3~5분 목표 달성은 미확인이다.
 
 현재 진행
-승인된 플레이 범위는 PC 1인 캐릭터 전환 조작이다. 세 단계의 공간과 연결, 복셀 외형, 빛블록 상태 표현을 구현했다. 13단계 그래픽 자동 검증이 `HAP3D_VALIDATION_OK`로 통과했고, 세 단계 모두 제작된 시작 위치에서 실제 입력으로 목표까지 진행했다. 검증 로그: `/tmp/hap3d-voxel-validation-release.log`. Mac Universal 빌드를 생성하고 실행해 Enter/D/Tab/G/R/Esc 입력을 확인했다. Windows 64비트 빌드는 생성했으나 실행은 미검증이다. 초행 사용자 플레이테스트는 하지 않았고 3~5분 목표 달성도 미확인이다.
+승인된 플레이 범위는 PC 1인 캐릭터 전환 조작이다. 세 단계의 공간과 연결, 복셀 외형, 빛블록 상태 표현을 구현했다. 13단계 그래픽 자동 검증이 `HAP3D_VALIDATION_OK`로 통과했고, 세 단계 모두 제작된 시작 위치에서 검증용 이동 입력으로 목표까지 자동 진행했다. 검증 로그: `/tmp/hap3d-voxel-validation-release.log`. Mac Universal 빌드를 생성하고 실행해 Enter/D/Tab/G/R/Esc 입력을 확인했다. Windows 64비트 빌드는 생성했으나 실행은 미검증이다. 초행 사용자 플레이테스트는 하지 않았고 3~5분 목표 달성도 미확인이다.
 
 현재 실험 항목
 항목 | 상태
@@ -88,7 +88,7 @@ Windows 64비트 | 빌드 생성 완료, 실행 미검증
 초행 사용자 테스트 | 미실시, 3~5분 목표 미확인
 
 개발 이력과 제출 상태
-학교 제출 PDF는 기획서 v0.4이며, 이 최신 원문 v0.5와는 별도 버전이다. v0.5는 아직 학교 제출 완료로 기록하지 않는다. GitHub 공개 저장소가 생성됐다: https://github.com/ApexLegendIsFun/HAP3D. 소스 푸시·릴리스·학교 대시보드 등록은 준비 중이며 완료되지 않았다. 구현·검증·빌드 상태는 위 증거를 기준으로 기록한다.
+학교 제출 PDF는 기획서 v0.4이며, 이 최신 원문 v0.5와는 별도 버전이다. v0.5는 아직 학교 제출 완료로 기록하지 않는다. GitHub 공개 저장소 main에 소스 커밋 `4f56a3b`를 푸시했다: https://github.com/ApexLegendIsFun/HAP3D. 공개 개발 프리릴리스 v0.1.0을 게시했다: https://github.com/ApexLegendIsFun/HAP3D/releases/tag/v0.1.0. Mac Universal ZIP은 44,430,878 bytes, Windows 64비트 ZIP은 36,017,544 bytes이며 SHA-256 파일을 함께 제공한다. 원격 해시와 로컬 파일 해시가 일치함을 확인했다. 학교 Notion의 Git Repository 항목도 등록 후 다시 읽어 확인했다: https://app.notion.com/p/3e4caf5650aa80309c09fd9cf7c1705a. Windows 실행·초행 사용자 테스트·3~5분 목표 달성은 미검증이다.
 
 제출 일정
 일정 | 학교 제출 | 작업 목표

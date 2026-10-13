@@ -16,10 +16,10 @@ README.md, Docs/이선동_HAP3D_기획서_원문.txt, Docs/작업목록.txt를 �
 
 ## 아직 실험 중인 조건
 
-음 단독 붕괴 0.6초, 붕괴 후 복구 2초, 접근·함께 판정 범위, 안정화 우선순위, 접지 중 개별 중력 반전 방식, 카메라의 세부값은 구현 실험값이지 확정 규칙이 아니다. 점프·공중 조작, 행성 중력도 확정하지 않는다. 복셀 3개 퍼즐 구현을 완료했다. 13단계 그래픽 자동 검증이 `HAP3D_VALIDATION_OK`로 통과했고 세 단계 모두 제작된 시작 위치에서 실제 입력으로 목표까지 진행했다. 로그: `/tmp/hap3d-voxel-validation-release.log`. Mac Universal 빌드를 만들고 실행 및 Enter/D/Tab/G/R/Esc 입력을 확인했다. Windows 64비트 빌드는 생성했으나 실행은 미검증이다. 초행 사용자 테스트는 하지 않았고 3~5분 목표 달성도 미확인이다.
+음 단독 붕괴 0.6초, 붕괴 후 복구 2초, 접근·함께 판정 범위, 안정화 우선순위, 접지 중 개별 중력 반전 방식, 카메라의 세부값은 구현 실험값이지 확정 규칙이 아니다. 점프·공중 조작, 행성 중력도 확정하지 않는다. 복셀 3개 퍼즐 구현을 완료했다. 13단계 그래픽 자동 검증이 `HAP3D_VALIDATION_OK`로 통과했고 세 단계 모두 제작된 시작 위치에서 검증용 이동 입력으로 목표까지 자동 진행했다. 로그: `/tmp/hap3d-voxel-validation-release.log`. Mac Universal 빌드를 만들고 실행 및 Enter/D/Tab/G/R/Esc 입력을 확인했다. Windows 64비트 빌드는 생성했으나 실행은 미검증이다. 초행 사용자 테스트는 하지 않았고 3~5분 목표 달성도 미확인이다.
 
 ## 문서·제출 상태 기록
 
-기획서 PDF v0.4는 학교에 제출된 버전이다. 기획 원문 v0.5 (2026.10.13)는 별도 최신 문서이며 제출 완료로 쓰지 않는다. GitHub 공개 저장소가 생성됐다: https://github.com/ApexLegendIsFun/HAP3D. 소스 푸시·릴리스·학교 대시보드 등록은 준비 중이며 완료로 기록하지 않는다. 구현과 검증 상태는 위 증거를 따른다.
+기획서 PDF v0.4는 학교에 제출된 버전이다. 기획 원문 v0.5 (2026.10.13)는 별도 최신 문서이며 제출 완료로 쓰지 않는다. GitHub 공개 저장소 main에 소스 커밋 `4f56a3b`를 푸시했다: https://github.com/ApexLegendIsFun/HAP3D. 공개 개발 프리릴리스 v0.1.0을 게시했다: https://github.com/ApexLegendIsFun/HAP3D/releases/tag/v0.1.0. Mac Universal ZIP(44,430,878 bytes), Windows 64-bit ZIP(36,017,544 bytes), SHA-256 파일을 포함하며 원격 해시와 로컬 파일 해시가 일치함을 확인했다. 학교 Notion의 Git Repository 항목도 등록 후 다시 읽어 확인했다: https://app.notion.com/p/3e4caf5650aa80309c09fd9cf7c1705a. Windows 실행·초행 사용자 테스트·3~5분 목표 달성은 미검증이다.
 
 제출 실행파일은 Unity 기준이며 학교 지정 Unity 버전은 미확인이다. 빌드는 실행파일뿐 아니라 폴더 전체와 실제 조작 설명 README.txt를 포함한다. 개발 구현 상태는 README.md와 Docs/작업목록.txt의 확인된 기록을 따른다.

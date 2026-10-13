@@ -2,6 +2,8 @@
 
 HAP 3D는 세 개의 빛블록 퍼즐을 완성한 PC 게임 개발 프리뷰다. 양과 음을 한 명이 번갈아 조작하며 바닥과 천장을 오가고, 두 캐릭터를 공동 목표에 도착시킨다.
 
+**v0.1.0 프리릴리스 다운로드:** [macOS Universal](https://github.com/ApexLegendIsFun/HAP3D/releases/download/v0.1.0/HAP3D-v0.1.0-Mac.zip) · [Windows 64비트](https://github.com/ApexLegendIsFun/HAP3D/releases/download/v0.1.0/HAP3D-v0.1.0-Windows.zip) · [릴리스 정보와 체크섬](https://github.com/ApexLegendIsFun/HAP3D/releases/tag/v0.1.0)
+
 ![HAP 3D 플레이 화면](Docs/Screenshots/gameplay-mac.png)
 
 ## 세 퍼즐
@@ -28,13 +30,15 @@ PC 1인 플레이와 WASD/Tab 전환 조작은 승인된 범위다. 점프와 �
 
 ## 검증과 빌드 현황
 
-Unity 컴파일과 그래픽을 포함한 13단계 검증이 종료 코드 0으로 통과했다. 로그: `/tmp/hap3d-voxel-validation-release.log` (`HAP3D_VALIDATION_OK`). 세 구간의 작성된 시작 위치에서 키보드 이동·캐릭터 전환·중력 반전·완료까지 이동 배치 조작 없이 검증했다. 경고 중 합류하면 붕괴가 취소되고 안정화되는 동작, 붕괴 유지와 복구, 한 캐릭터만 목표에 도착했을 때 미완료, 위·아래 층의 독립 판정도 확인했다. 시작 화면의 본문과 렌더 자세, 단계 전환 후 오브젝트 정리, 현재 단계에서 R 재시작도 확인했다.
+Unity 컴파일과 그래픽을 포함한 13단계 검증이 종료 코드 0으로 통과했다. 로그: `/tmp/hap3d-voxel-validation-release.log` (`HAP3D_VALIDATION_OK`). 세 구간의 작성된 시작 위치에서 **검증용 이동 입력**으로 실제 이동·캐릭터 전환·중력 반전·완료까지 확인했다. 자동 검증은 이동 경로를 순간 배치하지 않으며, 실제 키보드 입력 검증과는 구분한다. 경고 중 합류하면 붕괴가 취소되고 안정화되는 동작, 붕괴 유지와 복구, 한 캐릭터만 목표에 도착했을 때 미완료, 위·아래 층의 독립 판정도 확인했다. 시작 화면의 본문과 렌더 자세, 단계 전환 후 오브젝트 정리, 현재 단계에서 R 재시작도 확인했다.
 
 macOS Universal(Apple Silicon/Intel) 빌드가 성공했고 실행도 확인했다. 로그: `/tmp/hap3d-voxel-build-mac-release.log`. macOS에서 Enter 시작, D 약 700ms 이동, Tab 전환, G 반전, R 재시작, Esc 종료를 직접 확인했다. Player.log에 게임 예외는 없었다.
 
 Windows 64비트 빌드는 성공했다. 로그: `/tmp/hap3d-voxel-build-windows-release.log`. Windows PC에서 실행하는 검증은 아직 하지 않았다. 처음 하는 사람 대상 플레이 테스트도 아직 하지 않았으며, 3~5분 목표 분량은 확인 전이다.
 
-공개 GitHub 저장소가 생성되었다: [ApexLegendIsFun/HAP3D](https://github.com/ApexLegendIsFun/HAP3D). 소스 push, GitHub Release, 학교 Notion 등록은 준비 중이며 완료되지 않았다. 실제 배포 파일 링크는 공개 후 추가한다.
+소스 커밋 `4f56a3b`를 원격 `main`에 push했다. [공개 GitHub 저장소](https://github.com/ApexLegendIsFun/HAP3D)에 프리릴리스 [v0.1.0](https://github.com/ApexLegendIsFun/HAP3D/releases/tag/v0.1.0)을 공개했다. macOS ZIP은 44,430,878바이트(SHA-256 `582e9bb2d918a43288425605ad97c14d835b1ad94d53f532b6a26ca66bbd59f6`), Windows ZIP은 36,017,544바이트(SHA-256 `f4aa3c36e7facdc885be79793ae652710c97c777bd8cc5b970ffba08ecadab10`)이며 원격 업로드 후 로컬 파일과 digest 일치를 확인했다. 체크섬 파일도 릴리스에 포함된다.
+
+학교 제출 안내의 [Git Repository 항목](https://app.notion.com/p/3e4caf5650aa80309c09fd9cf7c1705a)에 저장소 링크를 입력했고, 페이지를 다시 불러와 반영된 링크를 확인했다. Windows 실행 확인과 초행자 플레이 테스트는 아직 남아 있다.
 
 ## 스크린샷
 
@@ -68,7 +72,7 @@ Unity 메뉴는 `HAP3D > Open Prototype`, `HAP3D > Validate Prototype`, `HAP3D >
 
 ## 글꼴 라이선스
 
-프로젝트는 Noto Sans KR 정적 Regular(weight 400) 글꼴을 사용한다. 원본 변수 글꼴의 기본 weight 100 대신 실행 시 400 굵기를 사용한다. 라이선스는 SIL Open Font License 1.1이며 [`Assets/HAP3D/Fonts/OFL-NotoSansKR.txt`](Assets/HAP3D/Fonts/OFL-NotoSansKR.txt)에 보관한다. 출처: [Google Fonts — Noto Sans KR](https://github.com/google/fonts/tree/main/ofl/notosanskr). 배포 빌드에는 `THIRD_PARTY_NOTICES.txt`를 포함한다.
+프로젝트는 Noto Sans KR 정적 Regular(weight 400) 글꼴을 사용한다. 원본 변수 글꼴의 기본 weight 100 대신 실행 시 400 굵기를 고정했다. 라이선스는 SIL Open Font License 1.1이며 [`Assets/HAP3D/Fonts/OFL-NotoSansKR.txt`](Assets/HAP3D/Fonts/OFL-NotoSansKR.txt)에 보관한다. 출처: [Google Fonts — Noto Sans KR](https://github.com/google/fonts/tree/main/ofl/notosanskr). 배포 빌드에는 `THIRD_PARTY_NOTICES.txt`를 포함한다.
 
 ## 기존 개발·제출 기록
 

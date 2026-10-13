@@ -1,8 +1,8 @@
-HAP 3D - 작업목록 v0.5 (2026.10.13, 최종 구현 확인 반영)
-현재 기획 원문: Docs/이선동_HAP3D_기획서_원문.txt v0.5
-학교 제출 PDF: 기획서 v0.4 (보관본). 원문 v0.5와 다른 버전.
+HAP 3D - 작업목록 v0.6 (2026.10.13, 최소 UI 갱신)
+현재 기획 원문: Docs/이선동_HAP3D_기획서_원문.txt v0.6
+학교 제출 PDF: 기획서 v0.4 (보관본). 원문 v0.6와 다른 버전.
 
-[세 퍼즐 구현·검증 — 완료]
+[v0.1.0 세 퍼즐 구현·검증 — 완료 기록]
 ■ 세 구간 시작 위치에서 검증용 이동 입력(API)으로 이동·캐릭터 전환·중력 반전·완료까지 검증; 경로 이동으로 강제 배치하지 않음. 실제 키 입력은 아래 macOS 확인과 구분.
 ■ Unity 컴파일 및 그래픽 포함 13단계 검증 통과, exit 0
   로그: /tmp/hap3d-voxel-validation-release.log (HAP3D_VALIDATION_OK)
@@ -30,10 +30,24 @@ HAP 3D - 작업목록 v0.5 (2026.10.13, 최종 구현 확인 반영)
 ■ 세 퍼즐: 함께 건너기 / 다른 바닥 / 뒤집혀도 함께
 ■ 비주얼: 작은 복셀 블록섬, 흑백 캐릭터, 청록 빛길, 고정 사선 직교 시점
 ■ 빛블록: 양 단독 길 / 음 단독 접근 시 붕괴 / 함께면 안정
-■ Noto Sans KR static Regular weight 400 (변수폰트 기본 100 대신 실행 시 400 고정), SIL OFL 1.1 notice와 Google Fonts 원본 출처 포함
+■ v0.1.0 글꼴 이력: Noto Sans KR static Regular weight 400, SIL OFL 1.1
 ■ 스크린샷: Docs/Screenshots/stage-1.png, stage-2.png, stage-3.png, bridge-warning.png, gameplay-mac.png
 ■ 초기 프로토타입 8단계 검증/Mac 실행과 학교 기획서 PDF v0.4 제출 기록은 아래 2026.10.02 보존 이력 참조
-  v0.4는 학교 제출본. 기획 원문 v0.5 (2026.10.13)는 별도 최신 문서.
+  v0.4는 학교 제출본. 기획 원문 v0.6 (2026.10.13)는 별도 최신 문서.
+
+[v0.1.1 최소 UI 업데이트 — 구현·배포 완료]
+■ 게임은 Stage1에서 즉시 시작. 왼쪽 위 Stage1 / Stage2 / Stage3 표시만 사용하고 Stage1에만 WASD/Tab/G/R 키 그림 표시.
+■ 설명·선택 HUD·제목·완료 패널 제거. 중간 단계 목표 도착 0.9초 뒤 자동 다음 단계 이동.
+■ 마지막 목표 도착 뒤 R/Enter/Space로 처음부터 재시작. 진행 중 R은 현재 단계 재시작, Esc는 종료.
+■ 최종 Nunito·화면·카메라 자동 검증 13/13 통과. setup: /tmp/hap3d-minimal-ui-setup-final.log (HAP3D_SETUP_OK); validation: /tmp/hap3d-minimal-ui-validation-final.log (HAP3D_VALIDATION_OK).
+■ Nunito ExtraBold static weight 800 적용. 원본: https://github.com/google/fonts/tree/main/ofl/nunito, SIL OFL 1.1: Assets/HAP3D/Fonts/OFL-Nunito.txt. 배포 notice는 Nunito만 안내.
+■ 키캡은 누르면 반응하며 WASD·Tab·G·R을 모두 눌러 본 뒤 사라지도록 구현. Esc는 종료키로 학습 대상에서 제외.
+■ Mac 실제 입력으로 WASD/Tab/G/R 반응과 모두 입력 후 키캡 숨김, Stage1→2→3 자동 이동, 마지막 목표 뒤 R로 처음부터 재시작, Esc 종료 확인.
+■ Mac Universal·Windows 64-bit 빌드 성공: /tmp/hap3d-minimal-ui-build-mac-final.log, /tmp/hap3d-minimal-ui-build-windows-final.log (HAP3D_BUILD_OK).
+■ Mac/Windows zip 패키징 완료. Mac 41,465,932 bytes, SHA-256 085f48657c4a83fd85aac4c65c54d6a3019dc8015876e426694e306fe19af329; Windows 33,053,698 bytes, SHA-256 4c02055e847953662f3a26a338bc92c88f65bc6c7b9e6f87b9bda0a0625e7d39. SHA-256 file 178 bytes.
+■ v0.1.1 공개 프리릴리스 완료: https://github.com/ApexLegendIsFun/HAP3D/releases/tag/v0.1.1
+■ source commit 9ba5f4b0e279991cc7a56e1ec3126a5d2d8bc232 원격 main push 완료; 릴리스 source SHA 일치.
+□ Windows 실행 및 초행 사용자 테스트 미검증; 3~5분 목표 미확인.
 
 [학교 일정]
 10.05 18:00 기획서 PDF, 10.06까지 피드백/컨펌, 10.23 23:59 1차 빌드, 11.06 23:59 2차 빌드, 11.16 12:00 최종 빌드·시연 영상.

@@ -16,8 +16,7 @@ namespace HAP3D.Editor
         private const float StageTimeout = 90f;
         private const float TotalTimeout = 360f;
 
-        // Phases 2-6 preserve the original eight behavioral scenarios. The last phases add
-        // title/stage lifecycle coverage and full input-driven routes through every authored stage.
+        // Preserve original behavioral cases, plus startup/reset checks and full routes through all stages.
         private static HAPPrototype prototype;
         private static int phase;
         private static int subStep;
@@ -28,9 +27,9 @@ namespace HAP3D.Editor
         private static bool phaseSetupDone;
         private static bool segmentStarted;
         private static bool warningCaptured;
-        private static bool titleSnapshotTaken;
-        private static Vector3 titleYangStart;
-        private static Vector3 titleYinStart;
+        private static bool initialSpawnCaptured;
+        private static Vector3 initialYangSpawn;
+        private static Vector3 initialYinSpawn;
         private static Transform retiredStageRoot;
 
         static PrototypeValidation()
@@ -53,7 +52,7 @@ namespace HAP3D.Editor
                 subStep = 0;
                 phaseEntered = false;
                 warningCaptured = false;
-                titleSnapshotTaken = false;
+                initialSpawnCaptured = false;
                 activeMoveToken = -1;
                 SessionState.SetBool(ActiveKey, true);
                 EditorApplication.isPlaying = true;
@@ -102,7 +101,7 @@ namespace HAP3D.Editor
 
                 switch (phase)
                 {
-                    case 0: TitleScreenAndStart(); break;
+                    case 0: ImmediateStartMovementAndReset(); break;
                     case 1: StartupSettles(); break;
                     case 2: CollapsePersistsAndRestores(); break;
                     case 3: RestartDuringCollapse(); break;
@@ -124,34 +123,56 @@ namespace HAP3D.Editor
             }
         }
 
-        private static void TitleScreenAndStart()
+        private static void ImmediateStartMovementAndReset()
         {
-            if (Elapsed < 0.35f) return;
-            Check(prototype.IsTitleScreen, "Prototype must open on its title screen.");
-            Check(prototype.StageIndex == 0 && prototype.StageCount == 3, "Title must point to stage 1 of 3.");
-            Check(prototype.YangBody != null && prototype.YinBody != null, "Title screen actors must exist.");
-            Check(Vector3.Distance(prototype.YangBody.position, prototype.CurrentStage.SpawnYang) < 0.02f &&
-                  Vector3.Distance(prototype.YinBody.position, prototype.CurrentStage.SpawnYin) < 0.02f,
-                "Title screen physics actors must appear at authored spawn positions.");
-            Check(Vector3.Distance(prototype.YangBody.transform.position, prototype.CurrentStage.SpawnYang) < 0.02f &&
-                  Vector3.Distance(prototype.YinBody.transform.position, prototype.CurrentStage.SpawnYin) < 0.02f,
-                "Title screen actor transforms must appear at authored spawn positions before StartGame.");
-            if (!titleSnapshotTaken)
+            Check(prototype.StageIndex == 0 && prototype.StageCount == 3 && !prototype.IsTitleScreen,
+                "Gameplay must start immediately at stage 1.");
+            Check(prototype.YangBody != null && prototype.YinBody != null, "Both actors must exist at startup.");
+            if (!initialSpawnCaptured)
             {
-                titleYangStart = prototype.YangBody.position;
-                titleYinStart = prototype.YinBody.position;
-                titleSnapshotTaken = true;
+                initialYangSpawn = prototype.CurrentStage.SpawnYang;
+                initialYinSpawn = prototype.CurrentStage.SpawnYin;
+                initialSpawnCaptured = true;
+            }
+            if (subStep == 0)
+            {
+                if (Elapsed < 0.15f) return;
+                Check(Vector3.Distance(prototype.YangBody.position, initialYangSpawn) < 0.02f &&
+                      Vector3.Distance(prototype.YinBody.position, initialYinSpawn) < 0.02f,
+                    "Both physics actors must begin at authored spawn positions.");
+                Check(Vector3.Distance(prototype.YangBody.transform.position, initialYangSpawn) < 0.02f &&
+                      Vector3.Distance(prototype.YinBody.transform.position, initialYinSpawn) < 0.02f,
+                    "Both rendered actor transforms must begin at authored spawn positions.");
+                Check(prototype.YangGrounded && prototype.YinGrounded, "Both actors must be grounded before movement check.");
                 prototype.SelectCharacter(0);
                 prototype.SetMoveInput(Vector2.right);
+                settledStart = Time.time;
+                subStep = 1;
+                return;
             }
-            if (Elapsed < 0.8f) return;
-            Check(Vector3.Distance(titleYangStart, prototype.YangBody.position) < 0.05f &&
-                  Vector3.Distance(titleYinStart, prototype.YinBody.position) < 0.05f,
-                "Actors must remain frozen before StartGame.");
-            prototype.SetMoveInput(Vector2.zero);
-            prototype.StartGame();
-            Check(!prototype.IsTitleScreen && prototype.StageIndex == 0, "StartGame must enter stage 1.");
-            Next();
+
+            if (subStep == 1 && Time.time - settledStart >= 0.4f)
+            {
+                prototype.SetMoveInput(Vector2.zero);
+                Check(prototype.YangBody.position.x - initialYangSpawn.x >= 0.75f &&
+                      prototype.YangBody.position.x - initialYangSpawn.x <= 2.2f,
+                    $"Yang should move about 1m from D-equivalent input; moved {prototype.YangBody.position.x - initialYangSpawn.x:0.00}m.");
+                Check(Vector3.Distance(prototype.YinBody.position, initialYinSpawn) < 0.05f,
+                    "Unselected Yin must remain in place while Yang moves.");
+                prototype.StartGame();
+                Check(!prototype.IsTitleScreen && prototype.StageIndex == 0 && !prototype.GoalReached,
+                    "StartGame must reset directly to the first active stage.");
+                Check(Vector3.Distance(prototype.YangBody.position, initialYangSpawn) < 0.02f &&
+                      Vector3.Distance(prototype.YinBody.position, initialYinSpawn) < 0.02f,
+                    "StartGame must reset both actors to authored spawns.");
+                Check(Vector3.Distance(prototype.YangBody.transform.position, initialYangSpawn) < 0.02f &&
+                      Vector3.Distance(prototype.YinBody.transform.position, initialYinSpawn) < 0.02f,
+                    "StartGame reset must synchronize rendered transforms with spawn positions.");
+                Check(prototype.YangGravitySign == -1 && prototype.YinGravitySign == -1 &&
+                      prototype.Bridges.Count == 1 && prototype.LightCollider.enabled,
+                    "StartGame reset must restore gravity and stage bridge state.");
+                Next();
+            }
         }
 
         private static void StartupSettles()

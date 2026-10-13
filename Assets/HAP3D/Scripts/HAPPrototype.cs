@@ -20,14 +20,17 @@ namespace HAP3D
         private bool won;
         private int selectedIndex;
         private float visualClock;
-        private float hintUntil;
-        private string actionHint;
+        private float victoryTimer;
+        private int tutorialKeyMask;
+        private float tutorialFadeTime;
         private Font font;
-        private GUIStyle titleStyle, headingStyle, bodyStyle, smallStyle, buttonStyle, whiteStyle;
+        private GUIStyle stageLabelStyle, keyLabelStyle;
+        private Texture2D roundedKeyMask;
         private static readonly Color Ink = new Color(.16f, .22f, .25f);
-        private static readonly Color MutedInk = new Color(.39f, .45f, .46f);
-        private static readonly Color Paper = new Color(.96f, .95f, .91f);
+        private static readonly Color KeyFill = new Color(.96f, .95f, .91f, .94f);
         private static readonly Color Teal = new Color(.20f, .55f, .51f);
+        private const int AllTutorialKeys = (1 << 7) - 1;
+        private const float TutorialFadeDuration = .25f;
 
         public Rigidbody YangBody => yang == null ? null : yang.Body;
         public Rigidbody YinBody => yin == null ? null : yin.Body;
@@ -41,7 +44,7 @@ namespace HAP3D
         public int YinGravitySign => yin == null ? -1 : yin.GravitySign;
         public int StageIndex { get; private set; }
         public int StageCount => 3;
-        public bool IsTitleScreen { get; private set; }
+        public bool IsTitleScreen => false;
         public IReadOnlyList<HAPLightBridge> Bridges => bridges.AsReadOnly();
         public HAPStageDefinition CurrentStage { get; private set; }
         public Transform StageRoot { get; private set; }
@@ -50,33 +53,37 @@ namespace HAP3D
         {
             if (CurrentStage != null) return;
             LoadStage(0);
-            IsTitleScreen = true;
-            yang.Body.isKinematic = true;
-            yin.Body.isKinematic = true;
-            SetCameraViewport();
         }
 
         private void Update()
         {
-            if (automatedControl || CurrentStage == null) return;
+            if (CurrentStage == null) return;
+            if (!automatedControl && StageIndex == 0) TrackTutorialKeys();
+            else if (tutorialKeyMask == AllTutorialKeys && tutorialFadeTime > 0f)
+                tutorialFadeTime = Mathf.Max(0f, tutorialFadeTime - Time.unscaledDeltaTime);
+            if (automatedControl) return;
             if (Input.GetKeyDown(KeyCode.Escape))
             {
                 if (!Application.isEditor) Application.Quit();
                 return;
             }
-            if (IsTitleScreen)
+            bool advanceKey = Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space);
+            if (won && StageIndex == StageCount - 1 &&
+                (Input.GetKeyDown(KeyCode.R) || advanceKey))
             {
-                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space)) StartGame();
+                StartGame();
                 return;
             }
             if (Input.GetKeyDown(KeyCode.R)) { RestartPrototype(); return; }
             if (won)
             {
-                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.Space))
+                if (advanceKey)
                 {
-                    if (StageIndex + 1 < StageCount) AdvanceStage();
-                    else StartGame();
+                    AdvanceStage();
+                    return;
                 }
+                if (StageIndex < StageCount - 1 && (victoryTimer += Time.deltaTime) >= .9f)
+                    AdvanceStage();
                 return;
             }
             if (Input.GetKeyDown(KeyCode.Tab)) SelectCharacter(1 - selectedIndex);
@@ -86,7 +93,7 @@ namespace HAP3D
 
         private void FixedUpdate()
         {
-            if (yang == null || yin == null || IsTitleScreen) return;
+            if (yang == null || yin == null) return;
             yang.RefreshGrounded(); yin.RefreshGrounded();
             if (won) return;
             yang.Simulate(selectedIndex == 0 ? moveInput : Vector2.zero, false);
@@ -95,7 +102,6 @@ namespace HAP3D
             if (!CurrentStage.PlayBounds.Contains(yang.Body.position) || !CurrentStage.PlayBounds.Contains(yin.Body.position))
             {
                 RestartPrototype();
-                ShowHint("괜찮아요. 다시, 함께.");
                 return;
             }
             if (yang.Grounded && yin.Grounded && yang.GravitySign == CurrentStage.GoalGravitySign &&
@@ -112,8 +118,8 @@ namespace HAP3D
         {
             if (yang == null) return;
             visualClock += Time.deltaTime;
-            yang.Animate(selectedIndex == 0 && !IsTitleScreen, IsTitleScreen || won, Time.deltaTime);
-            yin.Animate(selectedIndex == 1 && !IsTitleScreen, IsTitleScreen || won, Time.deltaTime);
+            yang.Animate(selectedIndex == 0, won, Time.deltaTime);
+            yin.Animate(selectedIndex == 1, won, Time.deltaTime);
             if (goalHalo != null)
             {
                 float scale = 1f + .035f * Mathf.Sin(visualClock * 2f);
@@ -129,23 +135,51 @@ namespace HAP3D
 
         public bool TryFlipSelectedGravity()
         {
-            if (IsTitleScreen || won || yang == null) return false;
+            if (won || yang == null) return false;
             var actor = selectedIndex == 0 ? yang : yin;
-            bool flipped = actor.TryFlip();
-            ShowHint(flipped ? "발밑이 바뀌어도, 이동 방향은 같아요." : "발판에 서 있을 때 뒤집을 수 있어요.");
-            return flipped;
+            return actor.TryFlip();
         }
 
-        public void StartGame() => LoadStage(0);
+        public void StartGame()
+        {
+            tutorialKeyMask = 0;
+            tutorialFadeTime = 0f;
+            LoadStage(0);
+        }
+
+        private void TrackTutorialKeys()
+        {
+            if (tutorialKeyMask == AllTutorialKeys)
+            {
+                tutorialFadeTime = Mathf.Max(0f, tutorialFadeTime - Time.unscaledDeltaTime);
+                return;
+            }
+
+            int previousMask = tutorialKeyMask;
+            RecordTutorialKey(KeyCode.W, 1 << 0);
+            RecordTutorialKey(KeyCode.A, 1 << 1);
+            RecordTutorialKey(KeyCode.S, 1 << 2);
+            RecordTutorialKey(KeyCode.D, 1 << 3);
+            RecordTutorialKey(KeyCode.Tab, 1 << 4);
+            RecordTutorialKey(KeyCode.G, 1 << 5);
+            RecordTutorialKey(KeyCode.R, 1 << 6);
+            if (previousMask != AllTutorialKeys && tutorialKeyMask == AllTutorialKeys)
+                tutorialFadeTime = TutorialFadeDuration;
+        }
+
+        private void RecordTutorialKey(KeyCode key, int bit)
+        {
+            if (Input.GetKeyDown(key)) tutorialKeyMask |= bit;
+        }
 
         public void LoadStage(int index)
         {
             if (index < 0 || index >= StageCount) throw new ArgumentOutOfRangeException(nameof(index));
             if (stages == null) stages = HAPStageDefinition.CreateStages();
             ClearStage();
-            StageIndex = index; CurrentStage = stages[index]; IsTitleScreen = false;
+            StageIndex = index; CurrentStage = stages[index];
             selectedIndex = 0; moveInput = Vector2.zero; won = false;
-            visualClock = 0; hintUntil = 0; actionHint = null;
+            visualClock = 0; victoryTimer = 0;
             StageRoot = new GameObject("HAP stage " + (index + 1) + " — " + CurrentStage.Name).transform;
             StageRoot.SetParent(transform, false);
             BuildStage();
@@ -158,15 +192,7 @@ namespace HAP3D
             LoadStage(StageIndex + 1);
         }
 
-        public void RestartPrototype()
-        {
-            bool title = IsTitleScreen;
-            LoadStage(StageIndex);
-            if (!title) return;
-            IsTitleScreen = true;
-            yang.Body.isKinematic = true; yin.Body.isKinematic = true;
-            SetCameraViewport();
-        }
+        public void RestartPrototype() => LoadStage(StageIndex);
 
         private void BuildStage()
         {
@@ -198,7 +224,7 @@ namespace HAP3D
         {
             var obj = new GameObject(label);
             obj.transform.SetParent(StageRoot, false);
-            // Interpolation must start at the spawn pose, including the frozen title preview.
+            // Keep interpolation anchored to the authored spawn pose.
             obj.transform.SetPositionAndRotation(position, Quaternion.identity);
             var actor = obj.AddComponent<HAPActor>();
             actor.Initialize(isYang, shell, contrast, accent);
@@ -336,16 +362,8 @@ namespace HAP3D
             RenderSettings.ambientGroundColor = new Color(.40f, .47f, .49f);
             RenderSettings.fog = false;
             QualitySettings.shadowDistance = 80f;
-            SetCameraViewport();
+            gameCamera.rect = new Rect(0, 0, 1, 1);
         }
-
-        private void SetCameraViewport()
-        {
-            if (gameCamera == null) return;
-            gameCamera.rect = IsTitleScreen ? new Rect(.25f, 0, .75f, 1) : new Rect(0, 0, 1, 1);
-        }
-
-        private void ShowHint(string message) { actionHint = message; hintUntil = Time.unscaledTime + 3.2f; }
 
         private void ClearStage()
         {
@@ -359,103 +377,180 @@ namespace HAP3D
             StageRoot = null;
         }
 
-        private void OnDestroy() => ClearStage();
-
-        private void EnsureStyles()
+        private void OnDestroy()
         {
-            if (titleStyle != null) return;
-            if (font == null) font = Resources.Load<Font>("HAPFont");
-            titleStyle = MakeStyle(72, Ink, FontStyle.Bold);
-            headingStyle = MakeStyle(28, Ink, FontStyle.Bold);
-            bodyStyle = MakeStyle(18, Ink);
-            smallStyle = MakeStyle(14, MutedInk);
-            whiteStyle = MakeStyle(17, Color.white, FontStyle.Bold);
-            buttonStyle = MakeStyle(19, Color.white, FontStyle.Bold);
-            buttonStyle.alignment = TextAnchor.MiddleCenter;
-            buttonStyle.normal.background = Texture2D.whiteTexture;
-            buttonStyle.hover.background = Texture2D.whiteTexture;
-            buttonStyle.active.background = Texture2D.whiteTexture;
-            buttonStyle.hover.textColor = Color.white;
-            buttonStyle.active.textColor = Color.white;
+            ClearStage();
+            if (roundedKeyMask != null) Destroy(roundedKeyMask);
         }
 
-        private GUIStyle MakeStyle(int size, Color color, FontStyle weight = FontStyle.Normal)
+        private void EnsureControlsStyles()
         {
-            var style = new GUIStyle(GUI.skin.label) { fontSize = size, fontStyle = weight, wordWrap = true };
+            if (stageLabelStyle != null) return;
+            if (font == null) font = Resources.Load<Font>("HAPFont");
+            stageLabelStyle = MakeControlsStyle(28, Ink, FontStyle.Normal);
+            keyLabelStyle = MakeControlsStyle(16, Ink, FontStyle.Normal);
+            keyLabelStyle.alignment = TextAnchor.MiddleCenter;
+            roundedKeyMask = CreateRoundedKeyMask();
+        }
+
+        private static Texture2D CreateRoundedKeyMask()
+        {
+            const int size = 32;
+            const float radius = 7f;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
+            {
+                name = "HAP rounded key mask",
+                hideFlags = HideFlags.HideAndDontSave,
+                filterMode = FilterMode.Bilinear,
+                wrapMode = TextureWrapMode.Clamp
+            };
+            var pixels = new Color[size * size];
+            for (int y = 0; y < size; y++)
+            for (int x = 0; x < size; x++)
+            {
+                float px = x + .5f, py = y + .5f;
+                float cx = Mathf.Clamp(px, radius, size - radius);
+                float cy = Mathf.Clamp(py, radius, size - radius);
+                float dx = px - cx, dy = py - cy;
+                pixels[y * size + x] = dx * dx + dy * dy <= radius * radius ? Color.white : Color.clear;
+            }
+            texture.SetPixels(pixels);
+            texture.Apply();
+            return texture;
+        }
+
+        private GUIStyle MakeControlsStyle(int size, Color color, FontStyle weight)
+        {
+            var style = new GUIStyle(GUI.skin.label) { fontSize = size, fontStyle = weight };
             if (font != null) style.font = font;
             style.normal.textColor = color;
             return style;
         }
 
-        private static void Panel(Rect rect, Color color)
+        private static void FillRect(Rect rect, Color color)
         {
             Color previous = GUI.color; GUI.color = color;
             GUI.DrawTexture(rect, Texture2D.whiteTexture); GUI.color = previous;
         }
 
-        private bool Button(Rect rect, string label)
+        private void DrawKeycap(Rect rect, string label, KeyCode key, int bit, float alpha, GUIStyle style)
         {
-            Color previous = GUI.backgroundColor; GUI.backgroundColor = Teal;
-            bool clicked = GUI.Button(rect, label, buttonStyle);
-            GUI.backgroundColor = previous;
-            return clicked;
+            bool pressed = Input.GetKey(key);
+            bool seen = (tutorialKeyMask & bit) != 0;
+            var previous = GUI.color;
+            GUI.color = new Color(Ink.r, Ink.g, Ink.b, alpha * .78f);
+            GUI.DrawTexture(rect, roundedKeyMask);
+            GUI.color = pressed
+                ? new Color(.28f, .77f, .71f, alpha)
+                : new Color(KeyFill.r, KeyFill.g, KeyFill.b, alpha * KeyFill.a);
+            GUI.DrawTexture(new Rect(rect.x + 1, rect.y + 1, rect.width - 2, rect.height - 2), roundedKeyMask);
+            GUI.color = new Color(1f, 1f, 1f, alpha);
+            GUI.Label(rect, label, style);
+            if (seen)
+            {
+                GUI.color = new Color(.16f, .62f, .54f, alpha);
+                GUI.DrawTexture(new Rect(rect.xMax - 7, rect.y + 4, 3, 3), roundedKeyMask);
+            }
+            GUI.color = previous;
         }
 
         private void OnGUI()
         {
             if (CurrentStage == null) return;
-            EnsureStyles();
-            var oldMatrix = GUI.matrix;
-            float scale = Mathf.Min(Screen.width / 1440f, Screen.height / 900f);
-            scale = Mathf.Max(.35f, scale);
-            GUI.matrix = Matrix4x4.TRS(Vector3.zero, Quaternion.identity, Vector3.one * scale);
-            float width = Screen.width / scale, height = Screen.height / scale;
+            EnsureControlsStyles();
             GUI.color = Color.white;
-            if (IsTitleScreen)
+            GUI.Label(new Rect(24, 18, 180, 42), "Stage" + (StageIndex + 1), stageLabelStyle);
+            if (StageIndex == 0 && (tutorialKeyMask != AllTutorialKeys || tutorialFadeTime > 0f))
             {
-                Panel(new Rect(0, 0, width * .30f, height), Paper);
-                float y = height * .28f;
-                GUI.Label(new Rect(52, y, 390, 100), "HAP 3D", titleStyle);
-                GUI.Label(new Rect(58, y + 108, 350, 78), "둘이어서,\n이어지는 길.", headingStyle);
-                GUI.Label(new Rect(58, y + 214, 335, 88), "양은 길을 밝히고, 음은 곁에 머물러요.\n작은 세상에서 두 사람의 길을 찾아보세요.", bodyStyle);
-                if (Button(new Rect(58, y + 330, 290, 60), "시작하기    →")) StartGame();
-                GUI.Label(new Rect(58, y + 404, 340, 35), "Enter 시작  ·  짧은 세 장면", smallStyle);
-                GUI.Label(new Rect(58, height - 64, 390, 32), "이선동  /  음과 양의 작은 퍼즐", smallStyle);
+                float alpha = tutorialKeyMask == AllTutorialKeys
+                    ? Mathf.Clamp01(tutorialFadeTime / TutorialFadeDuration)
+                    : 1f;
+                float y = Screen.height - 105;
+                DrawKeycap(new Rect(62, y, 40, 32), "W", KeyCode.W, 1 << 0, alpha, keyLabelStyle);
+                DrawKeycap(new Rect(16, y + 36, 40, 32), "A", KeyCode.A, 1 << 1, alpha, keyLabelStyle);
+                DrawKeycap(new Rect(62, y + 36, 40, 32), "S", KeyCode.S, 1 << 2, alpha, keyLabelStyle);
+                DrawKeycap(new Rect(108, y + 36, 40, 32), "D", KeyCode.D, 1 << 3, alpha, keyLabelStyle);
+
+                DrawKeycap(new Rect(166, y + 18, 54, 32), "Tab", KeyCode.Tab, 1 << 4, alpha, keyLabelStyle);
+                DrawKeycap(new Rect(236, y + 18, 42, 32), "G", KeyCode.G, 1 << 5, alpha, keyLabelStyle);
+                DrawKeycap(new Rect(294, y + 18, 42, 32), "R", KeyCode.R, 1 << 6, alpha, keyLabelStyle);
+                DrawTabIcon(new Rect(166, y + 53, 54, 24), alpha);
+                DrawVerticalArrows(new Rect(236, y + 53, 42, 24), alpha);
+                DrawRotateIcon(new Rect(294, y + 53, 42, 24), alpha);
             }
-            else
-            {
-                Panel(new Rect(30, 26, 445, 113), new Color(Paper.r, Paper.g, Paper.b, .95f));
-                GUI.Label(new Rect(50, 40, 380, 39), (StageIndex + 1).ToString("00") + "  " + CurrentStage.Name, headingStyle);
-                GUI.Label(new Rect(51, 88, 380, 28), CurrentStage.Subtitle, smallStyle);
-                for (int i = 0; i < StageCount; i++)
-                    Panel(new Rect(width - 116 + i * 26, 43, 16, 5), i <= StageIndex ? Teal : new Color(.66f, .73f, .70f));
-                Panel(new Rect(width - 250, 72, 214, 51), new Color(Ink.r, Ink.g, Ink.b, .94f));
-                GUI.Label(new Rect(width - 229, 85, 195, 28), (selectedIndex == 0 ? "양  ·  " : "음  ·  ") + "선택됨", whiteStyle);
-                float footerY = height - 116;
-                Panel(new Rect(30, footerY, width - 60, 91), new Color(Paper.r, Paper.g, Paper.b, .96f));
-                string hint = Time.unscaledTime < hintUntil ? actionHint : CurrentStage.Hint;
-                foreach (var bridge in bridges)
-                    if (bridge.State == HAPBridgeState.YinWarning) hint = "음이 혼자 있어요. 양을 곁으로 데려오세요.";
-                GUI.Label(new Rect(50, footerY + 13, width - 110, 31), hint, bodyStyle);
-                GUI.Label(new Rect(50, footerY + 51, width - 120, 26),
-                    "WASD  이동       Tab  양 / 음 전환       G  중력 반전       R  다시 시작       Esc  종료", smallStyle);
-                if (won) DrawComplete(width, height);
-            }
-            GUI.matrix = oldMatrix;
         }
 
-        private void DrawComplete(float width, float height)
+        private void DrawTabIcon(Rect rect, float alpha)
         {
-            bool final = StageIndex == StageCount - 1;
-            float x = width * .5f - 242, y = height * .5f - 150;
-            Panel(new Rect(x, y, 484, 266), Paper);
-            Panel(new Rect(x, y, 484, 5), Teal);
-            GUI.Label(new Rect(x + 34, y + 30, 420, 44), final ? "끝까지, 함께." : "함께 도착했어요.", headingStyle);
-            GUI.Label(new Rect(x + 35, y + 88, 414, 58), final ? "서로 다른 두 사람이\n하나의 길을 완성했습니다." : "다음 작은 세상에서도\n서로의 곁을 지켜주세요.", bodyStyle);
-            if (Button(new Rect(x + 34, y + 172, 416, 58), final ? "처음부터 다시   ↻" : "다음 장면으로   →"))
+            float blockSize = 11;
+            float centerY = rect.y + 6;
+            Rect left = new Rect(rect.x + 1, centerY, blockSize, blockSize);
+            Rect right = new Rect(rect.xMax - blockSize - 1, centerY, blockSize, blockSize);
+            DrawRoundedBlock(left, Ink, alpha);
+            DrawRoundedBlock(right, Color.white, alpha);
+            float cy = rect.center.y;
+            DrawArrow(new Vector2(left.xMax + 2, cy - 3), new Vector2(right.x - 2, cy - 3), alpha);
+            DrawArrow(new Vector2(right.x - 2, cy + 4), new Vector2(left.xMax + 2, cy + 4), alpha);
+        }
+
+        private void DrawVerticalArrows(Rect rect, float alpha)
+        {
+            Vector2 center = rect.center;
+            DrawLine(new Vector2(center.x, rect.y + 5), new Vector2(center.x, rect.yMax - 5), alpha);
+            DrawArrowHead(new Vector2(center.x, rect.y + 4), Vector2.down, alpha);
+            DrawArrowHead(new Vector2(center.x, rect.yMax - 4), Vector2.up, alpha);
+        }
+
+        private void DrawRotateIcon(Rect rect, float alpha)
+        {
+            Vector2 center = rect.center;
+            const float radius = 7f;
+            const int segments = 9;
+            float start = -48f * Mathf.Deg2Rad;
+            float end = 222f * Mathf.Deg2Rad;
+            Vector2 previous = center + new Vector2(Mathf.Cos(start), Mathf.Sin(start)) * radius;
+            for (int i = 1; i <= segments; i++)
             {
-                if (final) StartGame(); else AdvanceStage();
+                float angle = Mathf.Lerp(start, end, i / (float)segments);
+                Vector2 point = center + new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
+                DrawLine(previous, point, alpha);
+                previous = point;
             }
+            float tangent = end + Mathf.PI * .5f;
+            DrawArrowHead(previous, new Vector2(Mathf.Cos(tangent), Mathf.Sin(tangent)), alpha);
+        }
+
+        private void DrawRoundedBlock(Rect rect, Color color, float alpha)
+        {
+            GUI.color = new Color(color.r, color.g, color.b, alpha);
+            GUI.DrawTexture(rect, roundedKeyMask);
+            GUI.color = Color.white;
+        }
+
+        private void DrawArrow(Vector2 start, Vector2 end, float alpha)
+        {
+            DrawLine(start, end, alpha);
+            DrawArrowHead(end, (end - start).normalized, alpha);
+        }
+
+        private void DrawArrowHead(Vector2 tip, Vector2 direction, float alpha)
+        {
+            Vector2 back = -direction.normalized * 4f;
+            Vector2 side = new Vector2(-back.y, back.x) * .7f;
+            DrawLine(tip, tip + back + side, alpha);
+            DrawLine(tip, tip + back - side, alpha);
+        }
+
+        private void DrawLine(Vector2 start, Vector2 end, float alpha)
+        {
+            Vector2 delta = end - start;
+            if (delta.sqrMagnitude < .01f) return;
+            Matrix4x4 oldMatrix = GUI.matrix;
+            float angle = Mathf.Atan2(delta.y, delta.x) * Mathf.Rad2Deg;
+            GUIUtility.RotateAroundPivot(angle, start);
+            FillRect(new Rect(start.x, start.y - .8f, delta.magnitude, 1.6f),
+                new Color(Ink.r, Ink.g, Ink.b, alpha));
+            GUI.matrix = oldMatrix;
         }
     }
 }

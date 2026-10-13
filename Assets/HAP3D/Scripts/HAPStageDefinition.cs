@@ -80,7 +80,7 @@ namespace HAP3D
                         new Solid("아래 산책길", new Vector3(-1, -.5f, 1.6f), new Vector3(14, 1, 4)),
                         new Solid("위 산책길", new Vector3(4, 6.25f, -1.2f), new Vector3(4, .5f, 7.2f), true)
                     }, Array.Empty<Bridge>(),
-                    new Vector3(22, 6, -28), new Vector3(-.5f, 2.5f, -.6f), 8.6f),
+                    new Vector3(29.5f, 12.1f, -15.6f), new Vector3(-.5f, 2.5f, -.6f), 6.7f),
                 new HAPStageDefinition("뒤집혀도 함께", "같은 마음으로, 다른 하늘로",
                     "다리를 건너 뒤집고, 다시 함께. 두 사람 모두 마지막 빛으로.",
                     new Vector3(-7, .8f, -.8f), new Vector3(-5.5f, .8f, .8f), new Vector3(4, 5.2f, -8), 1,
@@ -91,7 +91,7 @@ namespace HAP3D
                         new Solid("마지막 섬", new Vector3(4, 6.5f, -8), new Vector3(4, 1, 4), true)
                     },
                     new[] { lowerBridge, new Bridge("천장의 빛다리", new Vector3(4, 6.18f, -4), new Vector3(4, .36f, 4), 1) },
-                    new Vector3(24, 6, -30), new Vector3(-.5f, 2.5f, -3), 10.1f)
+                    new Vector3(29.5f, 12.1f, -18), new Vector3(-.5f, 2.5f, -3), 7.6f)
             };
         }
     }
